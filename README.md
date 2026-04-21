@@ -119,56 +119,6 @@ To list all doctor emails, run: python show_doctors.py
 
 ================================================================================
 
-PROJECT STRUCTURE
-
-HealthTrack_Ai/
-├── app.py
-├── config.py
-├── database.py
-├── auth.py
-├── doctor_auth.py
-├── appointment_routes.py
-├── prediction_routes.py
-├── doctor_routes.py
-├── doctor_portal_routes.py
-├── doctor_appointment_routes.py
-├── requirements.txt
-├── .env
-├── models/
-│   ├── disease_prediction_model.pkl
-│   ├── symptom_names.pkl
-│   └── disease_label_encoder.pkl
-├── static/
-│   ├── css/
-│   │   ├── style.css
-│   │   └── doctor.css
-│   └── js/
-│       └── main.js
-└── templates/
-    ├── base.html
-    ├── index.html
-    ├── login.html
-    ├── register.html
-    ├── forgot_password.html
-    ├── reset_password.html
-    ├── symptom_checker.html
-    ├── find_doctors.html
-    ├── doctor_profile.html
-    ├── book_appointment.html
-    ├── appointments.html
-    ├── error.html
-    └── doctor/
-        ├── base.html
-        ├── dashboard.html
-        ├── appointments.html
-        ├── appointment_detail.html
-        ├── profile.html
-        ├── availability.html
-        ├── login.html
-        └── register.html
-
-================================================================================
-
 TESTING
 
 Run unit and integration tests:
@@ -178,21 +128,6 @@ Manual testing: Use browser and default credentials.
 
 ================================================================================
 
-CONTRIBUTING
-
-1. Fork the repository.
-2. Create a feature branch (git checkout -b feature/amazing-feature).
-3. Commit your changes (git commit -m 'Add amazing feature').
-4. Push to the branch (git push origin feature/amazing-feature).
-5. Open a Pull Request.
-
-================================================================================
-
-LICENSE
-
-Distributed under the MIT License.
-
-================================================================================
 
 CONTACT
 
