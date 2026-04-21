@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}Book Appointment with {{ doctor.name }}{% endblock %}
+{% block page_title %}Book Appointment{% endblock %}
+{% block page_subtitle %}Schedule your visit with Dr. {{ doctor.name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body p-4">
+                <!-- Doctor Summary -->
+                <div class="row mb-4 p-3 bg-light rounded">
+                    <div class="col-2 text-center">
+                        <i class="fas fa-user-md fa-3x text-primary"></i>
+                    </div>
+                    <div class="col-10">
+                        <h4>{{ doctor.name }}</h4>
+                        <p class="text-primary mb-1">{{ doctor.specialization }}</p>
+                        <p class="mb-0 text-muted small"><i class="fas fa-hospital me-1"></i>{{ doctor.hospital }}</p>
+                        <p class="mb-0 text-muted small"><i class="fas fa-clock me-1"></i>{{ doctor.timings }}</p>
+                        <p class="mb-0 text-muted small"><i class="fas fa-calendar me-1"></i>Working Days: {{ doctor.working_days_display or 'Mon-Fri' }}</p>
+                    </div>
+                </div>
+                
+                <form method="POST" id="appointmentForm">
+                    {% if request.args.get('disease') %}
+                    <input type="hidden" name="predicted_disease" value="{{ request.args.get('disease') }}">
+                    <input type="hidden" name="confidence" value="{{ request.args.get('confidence') }}">
+                    {% endif %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Select Date</label>
+                            <select class="form-select" id="appointment_date" name="appointment_date" required>
+                                <option value="">Choose a date</option>
+                                {% for date in available_dates %}
+                                <option value="{{ date }}" data-day="{{ date.strftime('%A') }}" {% if request.args.get('date') == date|string %}selected{% endif %}>
+                                    {{ date.strftime('%A, %B %d, %Y') }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Select Time</label>
+                            <select class="form-select" id="appointment_time" name="appointment_time" required>
+                                <option value="">First select a date</option>
+                            </select>
+                            <div id="timeLoading" class="spinner-border spinner-border-sm text-primary mt-2" style="display: none;"></div>
+                            <div id="timeError" class="text-danger small mt-1" style="display: none;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Describe your symptoms</label>
+                        <textarea class="form-control" name="symptoms" rows="4" required minlength="10" 
+                            placeholder="Please describe your symptoms in detail...">{{ request.args.get('symptoms', '') }}</textarea>
+                        <small class="text-muted" id="symptomsCounter">0/10 characters minimum</small>
+                    </div>
+                    
+                    {% if request.args.get('disease') %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-stethoscope me-2"></i>
+                        <strong>Predicted Disease:</strong> {{ request.args.get('disease') }}<br>
+                        <strong>Confidence:</strong> {{ request.args.get('confidence') }}%
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                            <i class="fas fa-check-circle me-2"></i>Confirm Booking
+                        </button>
+                        <a href="{{ url_for('doctor_profile', doctor_id=doctor.id) }}" class="btn btn-outline">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dateSelect = document.getElementById('appointment_date');
+    const timeSelect = document.getElementById('appointment_time');
+    const timeLoading = document.getElementById('timeLoading');
+    const timeError = document.getElementById('timeError');
+    const symptomsText = document.querySelector('textarea[name="symptoms"]');
+    const counter = document.getElementById('symptomsCounter');
+    const doctorId = {{ doctor.id }};
+    
+    console.log("Doctor ID:", doctorId);
+    console.log("Doctor Name:", "{{ doctor.name }}");
+    
+    function updateCounter() {
+        const len = symptomsText.value.length;
+        counter.textContent = len + '/10 characters minimum';
+        counter.style.color = len >= 10 ? 'green' : 'red';
+    }
+    
+    symptomsText.addEventListener('input', updateCounter);
+    updateCounter();
+    
+    dateSelect.addEventListener('change', function() {
+        const date = this.value;
+        const selectedOption = this.options[this.selectedIndex];
+        const dayName = selectedOption.getAttribute('data-day');
+        
+        console.log("Date selected:", date);
+        console.log("Day:", dayName);
+        
+        if (!date) {
+            timeSelect.innerHTML = '<option value="">First select a date</option>';
+            return;
+        }
+        
+        // Show loading
+        timeSelect.innerHTML = '<option value="">Loading available slots...</option>';
+        timeSelect.disabled = true;
+        timeLoading.style.display = 'inline-block';
+        timeError.style.display = 'none';
+        
+        // Make API call to get available slots
+        fetch('/get-available-slots', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `doctor_id=${doctorId}&date=${date}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("Response:", data);
+            timeLoading.style.display = 'none';
+            timeSelect.disabled = false;
+            
+            if (data.error) {
+                timeError.textContent = data.error;
+                timeError.style.display = 'block';
+                timeSelect.innerHTML = '<option value="">Error loading slots</option>';
+                return;
+            }
+            
+            if (data.slots && data.slots.length > 0) {
+                timeSelect.innerHTML = '<option value="">Select a time</option>';
+                data.slots.forEach(slot => {
+                    const option = document.createElement('option');
+                    option.value = slot;
+                    option.textContent = slot;
+                    timeSelect.appendChild(option);
+                });
+                console.log(`Loaded ${data.slots.length} slots`);
+            } else {
+                timeSelect.innerHTML = '<option value="">No slots available for this date</option>';
+                timeError.textContent = 'No available time slots for this date';
+                timeError.style.display = 'block';
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            timeLoading.style.display = 'none';
+            timeSelect.disabled = false;
+            timeSelect.innerHTML = '<option value="">Error loading slots</option>';
+            timeError.textContent = 'Failed to load available slots. Please try again.';
+            timeError.style.display = 'block';
+        });
+    });
+    
+    document.getElementById('appointmentForm').addEventListener('submit', function(e) {
+        if (!dateSelect.value) {
+            e.preventDefault();
+            alert('Please select a date');
+            return false;
+        }
+        
+        if (!timeSelect.value || timeSelect.value === 'Select a time' || timeSelect.value === 'No slots available for this date') {
+            e.preventDefault();
+            alert('Please select a valid time slot');
+            return false;
+        }
+        
+        if (symptomsText.value.trim().length < 10) {
+            e.preventDefault();
+            alert('Please describe your symptoms (at least 10 characters)');
+            symptomsText.focus();
+            return false;
+        }
+        
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Booking...';
+        return true;
+    });
+    
+    // Trigger change if date is pre-selected
+    if (dateSelect.value) {
+        dateSelect.dispatchEvent(new Event('change'));
+    }
+});
+</script>
+{% endblock %}

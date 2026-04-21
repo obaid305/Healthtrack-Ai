@@ -1,0 +1,176 @@
+{% extends "doctor/base.html" %}
+
+{% block title %}My Profile{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+{% block page_subtitle %}Update your professional information{% endblock %}
+
+{% block extra_css %}
+<style>
+.password-strength {
+    margin-top: 5px;
+    height: 4px;
+    background: #e2e8f0;
+    border-radius: 2px;
+    overflow: hidden;
+}
+.password-strength-bar {
+    height: 100%;
+    width: 0;
+    transition: width 0.3s ease;
+}
+.strength-weak { background: #dc2626; width: 25%; }
+.strength-fair { background: #f59e0b; width: 50%; }
+.strength-good { background: #10b981; width: 75%; }
+.strength-strong { background: #059669; width: 100%; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-user-md me-2"></i>Doctor Profile</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('doctor_update_profile') }}" id="profileForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-control" name="name" value="{{ doctor.name }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" value="{{ doctor.email }}" disabled>
+                            <small class="text-muted">Email cannot be changed</small>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Specialization</label>
+                            <select class="form-select" name="specialization" required>
+                                <option value="Cardiologist" {% if doctor.specialization == 'Cardiologist' %}selected{% endif %}>Cardiologist</option>
+                                <option value="Dermatologist" {% if doctor.specialization == 'Dermatologist' %}selected{% endif %}>Dermatologist</option>
+                                <option value="Neurologist" {% if doctor.specialization == 'Neurologist' %}selected{% endif %}>Neurologist</option>
+                                <option value="Pediatrician" {% if doctor.specialization == 'Pediatrician' %}selected{% endif %}>Pediatrician</option>
+                                <option value="Orthopedic Surgeon" {% if doctor.specialization == 'Orthopedic Surgeon' %}selected{% endif %}>Orthopedic Surgeon</option>
+                                <option value="General Physician" {% if doctor.specialization == 'General Physician' %}selected{% endif %}>General Physician</option>
+                                <option value="Gynecologist" {% if doctor.specialization == 'Gynecologist' %}selected{% endif %}>Gynecologist</option>
+                                <option value="Psychiatrist" {% if doctor.specialization == 'Psychiatrist' %}selected{% endif %}>Psychiatrist</option>
+                                <option value="Gastroenterologist" {% if doctor.specialization == 'Gastroenterologist' %}selected{% endif %}>Gastroenterologist</option>
+                                <option value="Rheumatologist" {% if doctor.specialization == 'Rheumatologist' %}selected{% endif %}>Rheumatologist</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Hospital/Clinic</label>
+                            <input type="text" class="form-control" name="hospital" value="{{ doctor.hospital }}" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Qualifications</label>
+                        <textarea class="form-control" name="qualification" rows="2" required>{{ doctor.qualification or '' }}</textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Consultation Hours</label>
+                            <input type="text" class="form-control" name="timings" value="{{ doctor.timings or '' }}" placeholder="e.g., 09:00 AM - 05:00 PM">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Experience (Years)</label>
+                            <input type="number" class="form-control" name="experience_years" value="{{ doctor.experience_years or 0 }}">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Consultation Fee (PKR)</label>
+                            <input type="number" class="form-control" name="consultation_fee" value="{{ doctor.consultation_fee or 1000 }}">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">About / Bio</label>
+                        <textarea class="form-control" name="about" rows="3" placeholder="Tell patients about yourself...">{{ doctor.about or '' }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-save me-2"></i>Update Profile
+                    </button>
+                </form>
+                
+                <!-- Password Change Section -->
+                <hr>
+                <h5><i class="fas fa-key me-2"></i>Change Password</h5>
+                <form method="POST" action="{{ url_for('doctor_change_password') }}" id="passwordChangeForm">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Current Password</label>
+                            <input type="password" class="form-control" name="current_password" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">New Password</label>
+                            <input type="password" class="form-control" id="new_password" name="new_password" required>
+                            <div class="password-strength mt-2">
+                                <div class="password-strength-bar" id="strengthBar"></div>
+                            </div>
+                            <small class="text-muted" id="strengthText"></small>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-control" id="confirm_new_password" name="confirm_password" required>
+                            <small class="text-muted" id="matchMessage"></small>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-secondary w-100">
+                        <i class="fas fa-key me-2"></i>Change Password
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Password strength meter
+document.getElementById('new_password')?.addEventListener('input', function() {
+    const password = this.value;
+    const strengthBar = document.getElementById('strengthBar');
+    const strengthText = document.getElementById('strengthText');
+    let strength = 0;
+    if (password.length >= 8) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[a-z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[^A-Za-z0-9]/.test(password)) strength++;
+    strengthBar.className = 'password-strength-bar';
+    if (strength <= 2) {
+        strengthBar.classList.add('strength-weak');
+        strengthText.innerHTML = 'Weak password';
+        strengthText.style.color = '#dc2626';
+    } else if (strength <= 3) {
+        strengthBar.classList.add('strength-fair');
+        strengthText.innerHTML = 'Fair password';
+        strengthText.style.color = '#f59e0b';
+    } else if (strength <= 4) {
+        strengthBar.classList.add('strength-good');
+        strengthText.innerHTML = 'Good password';
+        strengthText.style.color = '#10b981';
+    } else {
+        strengthBar.classList.add('strength-strong');
+        strengthText.innerHTML = 'Strong password!';
+        strengthText.style.color = '#059669';
+    }
+});
+
+// Password confirmation
+document.getElementById('confirm_new_password')?.addEventListener('input', function() {
+    const password = document.getElementById('new_password').value;
+    const confirm = this.value;
+    const matchMessage = document.getElementById('matchMessage');
+    if (confirm === password && confirm.length > 0) {
+        matchMessage.innerHTML = '✓ Passwords match';
+        matchMessage.style.color = '#10b981';
+    } else if (confirm.length > 0) {
+        matchMessage.innerHTML = '✗ Passwords do not match';
+        matchMessage.style.color = '#dc2626';
+    } else {
+        matchMessage.innerHTML = '';
+    }
+});
+</script>
+{% endblock %}

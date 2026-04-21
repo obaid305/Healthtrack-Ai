@@ -1,0 +1,183 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+{% block page_title %}Welcome Back{% endblock %}
+{% block page_subtitle %}Login to your HealthTrack AI account{% endblock %}
+
+{% block extra_css %}
+<style>
+.login-tabs .nav-link {
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 500;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: var(--gray-600);
+    transition: all 0.3s ease;
+}
+.login-tabs .nav-link:hover {
+    color: var(--primary);
+    border-bottom-color: var(--primary-light);
+}
+.login-tabs .nav-link.active {
+    color: var(--primary);
+    background: transparent;
+    border-bottom-color: var(--primary);
+}
+.login-card {
+    border: none;
+    box-shadow: var(--shadow-lg);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+}
+.login-card .card-body {
+    padding: 2rem;
+}
+.login-header-icon {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, var(--primary-soft), var(--secondary-soft));
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+}
+.login-header-icon i {
+    font-size: 2rem;
+    color: var(--primary);
+}
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 1.5rem 0;
+}
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid var(--gray-200);
+}
+.divider span {
+    padding: 0 1rem;
+    color: var(--gray-500);
+    font-size: 0.8rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card login-card">
+            <div class="card-body p-4">
+                <div class="login-header-icon">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <h4 class="text-center mb-4">Welcome Back!</h4>
+                
+                <ul class="nav nav-tabs login-tabs nav-justified mb-4" id="loginTab" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active" id="patient-tab" data-bs-toggle="tab" data-bs-target="#patient" type="button">
+                            <i class="fas fa-user me-2"></i>Patient Login
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="doctor-tab" data-bs-toggle="tab" data-bs-target="#doctor" type="button">
+                            <i class="fas fa-user-md me-2"></i>Doctor Login
+                        </button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content">
+                    <!-- Patient Login -->
+                    <div class="tab-pane fade show active" id="patient">
+                        <form method="POST" action="{{ url_for('login') }}">
+                            <div class="mb-3">
+                                <label class="form-label">Email Address</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0">
+                                        <i class="fas fa-envelope text-muted"></i>
+                                    </span>
+                                    <input type="email" class="form-control border-start-0" name="email" placeholder="Enter your email" required autofocus>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0">
+                                        <i class="fas fa-lock text-muted"></i>
+                                    </span>
+                                    <input type="password" class="form-control border-start-0" name="password" placeholder="Enter your password" required>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="remember_me" name="remember_me">
+                                    <label class="form-check-label small" for="remember_me">Remember Me</label>
+                                </div>
+                                <a href="{{ url_for('forgot_password') }}" class="small text-primary">Forgot Password?</a>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 py-2">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login as Patient
+                            </button>
+                        </form>
+                        <div class="divider">
+                            <span>New to HealthTrack AI?</span>
+                        </div>
+                        <p class="text-center mb-0">
+                            <a href="{{ url_for('register') }}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-user-plus me-2"></i>Create New Account
+                            </a>
+                        </p>
+                    </div>
+                    
+                    <!-- Doctor Login -->
+                    <div class="tab-pane fade" id="doctor">
+                        <!-- FIXED: action points to url_for('doctor_login') which now exists -->
+                        <form method="POST" action="{{ url_for('doctor_login') }}">
+                            <div class="mb-3">
+                                <label class="form-label">Email Address</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0">
+                                        <i class="fas fa-envelope text-muted"></i>
+                                    </span>
+                                    <input type="email" class="form-control border-start-0" name="email" placeholder="Enter your doctor email" required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0">
+                                        <i class="fas fa-lock text-muted"></i>
+                                    </span>
+                                    <input type="password" class="form-control border-start-0" name="password" placeholder="Enter your password" required>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="remember_me_doctor" name="remember_me">
+                                    <label class="form-check-label small" for="remember_me_doctor">Remember Me</label>
+                                </div>
+                                <a href="{{ url_for('forgot_password') }}" class="small text-primary">Forgot Password?</a>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 py-2">
+                                <i class="fas fa-user-md me-2"></i>Login as Doctor
+                            </button>
+                        </form>
+                        <div class="divider">
+                            <span>Join Our Medical Network</span>
+                        </div>
+                        <p class="text-center mb-0">
+                            <a href="{{ url_for('register') }}#doctor-reg-tab" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-user-plus me-2"></i>Register as Doctor
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

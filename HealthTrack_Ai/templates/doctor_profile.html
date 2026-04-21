@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Dr. {{ doctor.name }}{% endblock %}
+{% block page_title %}Doctor Profile{% endblock %}
+{% block page_subtitle %}View details and book appointment with {{ doctor.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.working-days-badge {
+    display: inline-block;
+    background: var(--primary-soft);
+    color: var(--primary);
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin: 0.25rem;
+}
+
+.rating-stars {
+    color: #fbbf24;
+    letter-spacing: 2px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 text-center mb-3">
+                        <div class="doctor-avatar" style="width: 100px; height: 100px; margin: 0 auto;">
+                            <i class="fas fa-user-md fa-4x text-primary"></i>
+                        </div>
+                        {% if doctor.rating %}
+                        <div class="mt-2 rating-stars">
+                            {% for i in range(5) %}
+                                {% if i < doctor.rating|int %}
+                                    <i class="fas fa-star"></i>
+                                {% elif i < doctor.rating|round(0, 'ceil') %}
+                                    <i class="fas fa-star-half-alt"></i>
+                                {% else %}
+                                    <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                            <span class="text-muted small">({{ doctor.total_reviews or 0 }} reviews)</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-9">
+                        <h2>{{ doctor.name }}</h2>
+                        <span class="doctor-specialty">{{ doctor.specialization }}</span>
+                        
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <p><i class="fas fa-hospital me-2 text-muted"></i>{{ doctor.hospital or 'Not specified' }}</p>
+                                <p><i class="fas fa-clock me-2 text-muted"></i>{{ doctor.timings or 'Timings not available' }}</p>
+                                <p><i class="fas fa-briefcase me-2 text-muted"></i>{{ doctor.experience_years or 0 }} years experience</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><i class="fas fa-rupee-sign me-2 text-muted"></i>Consultation Fee: PKR {{ doctor.consultation_fee or 1000 }}</p>
+                                <p><i class="fas fa-check-circle text-success me-2"></i>{% if doctor.is_available %}Available for Appointments{% else %}Currently Not Available{% endif %}</p>
+                                <p><i class="fas fa-calendar-week me-2 text-muted"></i>
+                                    <strong>Working Days:</strong><br>
+                                    {% if doctor.working_days %}
+                                        {% set days = doctor.working_days|replace('"', '')|replace('[', '')|replace(']', '')|split(',') %}
+                                        {% for day in days %}
+                                            <span class="working-days-badge">{{ day.strip() }}</span>
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="text-muted">Not specified</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if doctor.qualification %}
+                <hr>
+                <h5><i class="fas fa-graduation-cap me-2"></i>Qualifications</h5>
+                <p>{{ doctor.qualification }}</p>
+                {% endif %}
+                
+                {% if doctor.about %}
+                <hr>
+                <h5><i class="fas fa-info-circle me-2"></i>About</h5>
+                <p>{{ doctor.about }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="selected-panel" style="position: sticky; top: 90px;">
+            <h5><i class="fas fa-calendar-plus me-2 text-primary"></i>Book Appointment</h5>
+            {% if session.user_id %}
+                <form action="{{ url_for('book_appointment', doctor_id=doctor.id) }}" method="GET">
+                    <div class="mb-3">
+                        <label class="form-label">Select Date</label>
+                        <select class="form-select" name="date" required>
+                            <option value="">Choose a date</option>
+                            {% for date in available_dates %}
+                            <option value="{{ date }}" data-day="{{ date.strftime('%A') }}">
+                                {{ date.strftime('%A, %B %d, %Y') }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted" id="workingDayWarning" style="display: none;">
+                            <i class="fas fa-info-circle me-1"></i>
+                            <span id="warningMessage"></span>
+                        </small>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-calendar-check me-2"></i>Book Appointment
+                    </button>
+                </form>
+                
+                <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const workingDays = {{ (doctor.working_days or []) | tojson | safe }};
+                    const dateSelect = document.querySelector('select[name="date"]');
+                    const warningDiv = document.getElementById('workingDayWarning');
+                    const warningSpan = document.getElementById('warningMessage');
+                    
+                    // Get working days from the doctor
+                    const workingDaysList = Array.isArray(workingDays) ? workingDays.map(d => d.trim()) : [];
+                    
+                    dateSelect.addEventListener('change', function() {
+                        const selectedOption = this.options[this.selectedIndex];
+                        const selectedDay = selectedOption.getAttribute('data-day');
+                        
+                        if (selectedDay && workingDaysList.length > 0) {
+                            if (!workingDaysList.includes(selectedDay)) {
+                                warningSpan.innerHTML = `Doctor is not available on ${selectedDay}s. Please select another day.`;
+                                warningDiv.style.display = 'block';
+                                warningDiv.classList.add('text-danger');
+                            } else {
+                                warningDiv.style.display = 'none';
+                            }
+                        }
+                    });
+                });
+                </script>
+            {% else %}
+                <p class="text-center">Please login to book an appointment</p>
+                <a href="{{ url_for('login') }}" class="btn btn-primary w-100">Login</a>
+            {% endif %}
+        </div>
+        
+        <!-- Reviews Section -->
+        {% if doctor.total_reviews and doctor.total_reviews > 0 %}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5><i class="fas fa-star text-warning me-2"></i>Patient Reviews</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-center text-muted">Reviews coming soon</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

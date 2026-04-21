@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}System Test{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>HealthTrack AI - System Test</h1>
+        <div class="alert alert-success">
+            <h4>✓ System is running!</h4>
+            <p>The application is working with rule-based prediction fallback.</p>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5>System Information</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Flask Version
+                        <span class="badge bg-primary">{{ flask_version }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Python Version
+                        <span class="badge bg-primary">{{ python_version }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Model Status
+                        <span class="badge bg-warning">Using Rule-based Fallback</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Database
+                        <span class="badge bg-success">{{ db_status }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-stethoscope fa-3x text-primary mb-3"></i>
+                        <h5>Symptom Checker</h5>
+                        <a href="{{ url_for('symptom_checker') }}" class="btn btn-primary">Test</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-user-md fa-3x text-primary mb-3"></i>
+                        <h5>Find Doctors</h5>
+                        <a href="{{ url_for('find_doctors') }}" class="btn btn-primary">Test</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-calendar-check fa-3x text-primary mb-3"></i>
+                        <h5>Appointments</h5>
+                        <a href="{{ url_for('appointments') }}" class="btn btn-primary">Test</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

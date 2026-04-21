@@ -1,0 +1,298 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="description" content="HealthTrack AI - AI-powered healthcare platform">
+    <title>HealthTrack AI - {% block title %}Healthcare Platform{% endblock %}</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-heartbeat"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h2>HealthTrack AI</h2>
+                        <p>Healthcare Intelligence</p>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">Main</div>
+                <a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                
+                {% if session.user_id %}
+                <a href="{{ url_for('symptom_checker') }}" class="nav-link {% if request.endpoint == 'symptom_checker' %}active{% endif %}">
+                    <i class="fas fa-stethoscope"></i>
+                    <span>Symptom Checker</span>
+                </a>
+                <a href="{{ url_for('find_doctors') }}" class="nav-link {% if request.endpoint == 'find_doctors' %}active{% endif %}">
+                    <i class="fas fa-user-md"></i>
+                    <span>Find Doctors</span>
+                </a>
+                <a href="{{ url_for('appointments') }}" class="nav-link {% if request.endpoint == 'appointments' %}active{% endif %}">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>My Appointments</span>
+                </a>
+                {% elif session.doctor_id %}
+                <a href="{{ url_for('doctor_dashboard') }}" class="nav-link {% if request.endpoint == 'doctor_dashboard' %}active{% endif %}">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{{ url_for('doctor_appointments') }}" class="nav-link {% if request.endpoint == 'doctor_appointments' %}active{% endif %}">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Appointments</span>
+                </a>
+                <a href="{{ url_for('doctor_profile_page') }}" class="nav-link {% if request.endpoint == 'doctor_profile_page' %}active{% endif %}">
+                    <i class="fas fa-user-circle"></i>
+                    <span>My Profile</span>
+                </a>
+                <a href="{{ url_for('doctor_availability') }}" class="nav-link {% if request.endpoint == 'doctor_availability' %}active{% endif %}">
+                    <i class="fas fa-clock"></i>
+                    <span>Availability</span>
+                </a>
+                {% else %}
+                <a href="{{ url_for('login') }}" class="nav-link">
+                    <i class="fas fa-stethoscope"></i>
+                    <span>Symptom Checker</span>
+                </a>
+                <a href="{{ url_for('login') }}" class="nav-link">
+                    <i class="fas fa-user-md"></i>
+                    <span>Find Doctors</span>
+                </a>
+                <a href="{{ url_for('login') }}" class="nav-link">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Appointments</span>
+                </a>
+                {% endif %}
+                
+                <div class="nav-section">Account</div>
+                {% if session.user_id %}
+                <a href="{{ url_for('profile') }}" class="nav-link">
+                    <i class="fas fa-user-circle"></i>
+                    <span>My Profile</span>
+                </a>
+                <a href="{{ url_for('logout') }}" class="nav-link">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+                {% elif session.doctor_id %}
+                <a href="{{ url_for('doctor_logout') }}" class="nav-link">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+                {% else %}
+                <a href="{{ url_for('login') }}" class="nav-link">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Login</span>
+                </a>
+                <a href="{{ url_for('register') }}" class="nav-link">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Register</span>
+                </a>
+                <!-- Doctor quick links using unified pages with hash -->
+                <a href="{{ url_for('login') }}#doctor-tab" class="nav-link">
+                    <i class="fas fa-user-md"></i>
+                    <span>Doctor Login</span>
+                </a>
+                <a href="{{ url_for('register') }}#doctor-reg-tab" class="nav-link">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Doctor Register</span>
+                </a>
+                {% endif %}
+            </nav>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="page-title">
+                    <h1>{% block page_title %}Dashboard{% endblock %}</h1>
+                    <p>{% block page_subtitle %}{% endblock %}</p>
+                </div>
+                <div class="header-actions">
+                    <button class="mobile-menu-btn" id="mobileMenuBtn">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="user-dropdown">
+                        <div class="user-menu" id="userMenu">
+                            <div class="user-info">
+                                <div class="user-name">
+                                    {% if session.user_id %}
+                                        {{ session.user_name }}
+                                    {% elif session.doctor_id %}
+                                        {{ session.doctor_name }}
+                                    {% else %}
+                                        Guest User
+                                    {% endif %}
+                                </div>
+                                <div class="user-role">
+                                    {% if session.user_id %}
+                                        Patient
+                                    {% elif session.doctor_id %}
+                                        Doctor
+                                    {% else %}
+                                        Visitor
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="user-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        </div>
+                        <ul class="dropdown-menu" id="userDropdownMenu">
+                            {% if session.user_id %}
+                            <li><h6 class="dropdown-header">Patient Account</h6></li>
+                            <li><a class="dropdown-item" href="{{ url_for('profile') }}"><i class="fas fa-user me-2"></i>My Profile</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('appointments') }}"><i class="fas fa-calendar me-2"></i>My Appointments</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                            {% elif session.doctor_id %}
+                            <li><h6 class="dropdown-header">Doctor Account</h6></li>
+                            <li><a class="dropdown-item" href="{{ url_for('doctor_dashboard') }}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('doctor_appointments') }}"><i class="fas fa-calendar-check me-2"></i>Appointments</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('doctor_profile_page') }}"><i class="fas fa-user me-2"></i>Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{{ url_for('doctor_logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show mx-3" role="alert">
+                            <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-circle{% else %}info-circle{% endif %} me-2"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <!-- Content Area -->
+            <div class="content-area">
+                {% block content %}{% endblock %}
+            </div>
+            
+            <!-- Footer -->
+            <footer class="footer">
+                <div class="container text-center">
+                    <p class="text-muted small mb-0">&copy; {{ now().year }} HealthTrack AI. All rights reserved.</p>
+                </div>
+            </footer>
+        </main>
+    </div>
+    
+    <!-- Back to Top Button -->
+    <button id="backToTop" aria-label="Back to top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+    
+    <!-- Spinner Overlay -->
+    <div class="spinner-overlay">
+        <div class="spinner"></div>
+    </div>
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('mobile-open');
+        });
+        
+        // Back to top
+        window.addEventListener('scroll', function() {
+            const btn = document.getElementById('backToTop');
+            if (window.scrollY > 300) {
+                btn.style.display = 'flex';
+            } else {
+                btn.style.display = 'none';
+            }
+        });
+        
+        document.getElementById('backToTop').addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        
+        // User dropdown toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const userMenu = document.getElementById('userMenu');
+            const dropdownMenu = document.getElementById('userDropdownMenu');
+            
+            if (userMenu && dropdownMenu) {
+                userMenu.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    dropdownMenu.classList.toggle('show');
+                });
+                
+                document.addEventListener('click', function(e) {
+                    if (!userMenu.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                        dropdownMenu.classList.remove('show');
+                    }
+                });
+            }
+        });
+        
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const menuBtn = document.getElementById('mobileMenuBtn');
+            if (window.innerWidth <= 768) {
+                if (!sidebar.contains(event.target) && !menuBtn.contains(event.target)) {
+                    sidebar.classList.remove('mobile-open');
+                }
+            }
+        });
+        
+        // Activate tab based on URL hash (for unified login/register pages)
+        $(document).ready(function() {
+            if (window.location.hash) {
+                const hash = window.location.hash;
+                // Check if hash matches a tab trigger (e.g., #doctor-tab, #doctor-reg-tab)
+                const tabTrigger = document.querySelector(`button[data-bs-target="${hash}"]`);
+                if (tabTrigger) {
+                    new bootstrap.Tab(tabTrigger).show();
+                } else {
+                    // Also try to find any link with href matching hash
+                    const link = document.querySelector(`a[href="${hash}"]`);
+                    if (link && link.getAttribute('data-bs-toggle') === 'tab') {
+                        new bootstrap.Tab(link).show();
+                    }
+                }
+                // Scroll to the element after tab switch
+                setTimeout(() => {
+                    const targetElement = document.querySelector(hash);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }, 100);
+            }
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

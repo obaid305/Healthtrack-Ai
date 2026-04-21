@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Doctor Registration{% endblock %}
+{% block page_title %}Doctor Registration{% endblock %}
+{% block page_subtitle %}Join our network of healthcare professionals{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('doctor_register') }}" id="registerForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-control" name="name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" class="form-control" name="email" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                            <small class="text-muted">Min 8 chars, 1 uppercase, 1 lowercase, 1 number</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Confirm Password</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Specialization</label>
+                            <select class="form-select" name="specialization" required>
+                                <option value="">Select Specialization</option>
+                                <option value="Cardiologist">Cardiologist</option>
+                                <option value="Dermatologist">Dermatologist</option>
+                                <option value="Neurologist">Neurologist</option>
+                                <option value="Pediatrician">Pediatrician</option>
+                                <option value="Orthopedic Surgeon">Orthopedic Surgeon</option>
+                                <option value="General Physician">General Physician</option>
+                                <option value="Gynecologist">Gynecologist</option>
+                                <option value="Psychiatrist">Psychiatrist</option>
+                                <option value="Gastroenterologist">Gastroenterologist</option>
+                                <option value="Rheumatologist">Rheumatologist</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Hospital/Clinic</label>
+                            <input type="text" class="form-control" name="hospital" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Qualifications</label>
+                        <textarea class="form-control" name="qualification" rows="2" required></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Consultation Hours</label>
+                            <input type="text" class="form-control" name="timings" placeholder="e.g., 09:00 AM - 05:00 PM">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Experience (Years)</label>
+                            <input type="number" class="form-control" name="experience_years" value="0">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Consultation Fee (₹)</label>
+                            <input type="number" class="form-control" name="consultation_fee" value="1000">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-user-md me-2"></i>Register as Doctor
+                    </button>
+                </form>
+                <hr class="my-3">
+                <div class="text-center">
+                    <p>Already a doctor? <a href="{{ url_for('doctor_login') }}">Login here</a></p>
+                    <a href="{{ url_for('index') }}" class="small">Back to Patient Portal</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('registerForm').addEventListener('submit', function(e) {
+    const pwd = document.getElementById('password').value;
+    const confirm = document.getElementById('confirm_password').value;
+    if (pwd !== confirm) {
+        e.preventDefault();
+        alert('Passwords do not match');
+    }
+});
+</script>
+{% endblock %}

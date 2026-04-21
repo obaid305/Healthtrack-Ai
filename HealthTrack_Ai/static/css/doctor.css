@@ -1,0 +1,211 @@
+/* ============================================
+   Doctor Portal - Consistent with Main Theme
+   ============================================ */
+
+/* Stats Cards */
+.stats-card {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    color: var(--white);
+    transition: all var(--transition-base);
+}
+
+.stats-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+
+.stats-card h2 {
+    color: var(--white);
+    font-size: 2rem;
+    margin-bottom: 0;
+}
+
+.stats-card p {
+    margin-bottom: 0;
+    opacity: 0.9;
+    font-size: 0.875rem;
+}
+
+/* Table Styles */
+.table-container {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    overflow-x: auto;
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+.table thead {
+    background: var(--gray-100);
+}
+
+.table th {
+    padding: var(--space-md) var(--space-lg);
+    font-weight: 600;
+    color: var(--gray-800);
+    border-bottom: 2px solid var(--gray-200);
+    font-size: 0.875rem;
+}
+
+.table td {
+    padding: var(--space-md) var(--space-lg);
+    vertical-align: middle;
+    border-bottom: 1px solid var(--gray-200);
+    font-size: 0.875rem;
+}
+
+.table tbody tr:hover {
+    background: var(--gray-100);
+    cursor: pointer;
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.status-scheduled {
+    background: var(--primary-soft);
+    color: var(--primary);
+}
+
+.status-completed {
+    background: var(--success-light);
+    color: var(--success);
+}
+
+.status-cancelled {
+    background: var(--error-light);
+    color: var(--error);
+}
+
+.status-rescheduled {
+    background: var(--warning-light);
+    color: var(--warning);
+}
+
+/* Quick Actions */
+.quick-actions {
+    display: flex;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+}
+
+.quick-action-btn {
+    flex: 1;
+    text-align: center;
+    padding: var(--space-lg);
+    background: var(--gray-100);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-base);
+    text-decoration: none;
+    color: var(--gray-800);
+}
+
+.quick-action-btn:hover {
+    background: var(--primary-soft);
+    transform: translateY(-2px);
+    text-decoration: none;
+    color: var(--primary);
+}
+
+.quick-action-btn i {
+    font-size: 1.5rem;
+    display: block;
+    margin-bottom: var(--space-sm);
+    color: var(--primary);
+}
+
+/* Profile Form */
+.profile-section {
+    margin-bottom: var(--space-xl);
+    padding-bottom: var(--space-xl);
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.profile-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+/* Availability Switch */
+.availability-switch {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    background: var(--gray-100);
+    border-radius: var(--radius-md);
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 28px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--gray-400);
+    transition: var(--transition-base);
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: var(--transition-base);
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: var(--success);
+}
+
+input:checked + .slider:before {
+    transform: translateX(22px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .stats-card {
+        margin-bottom: var(--space-md);
+    }
+    
+    .quick-actions {
+        flex-direction: column;
+    }
+    
+    .table th, .table td {
+        padding: var(--space-sm) var(--space-md);
+        font-size: 0.75rem;
+    }
+}

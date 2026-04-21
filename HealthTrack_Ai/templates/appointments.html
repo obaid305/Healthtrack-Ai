@@ -1,0 +1,365 @@
+{% extends "base.html" %}
+
+{% block title %}My Appointments{% endblock %}
+{% block page_title %}My Appointments{% endblock %}
+{% block page_subtitle %}Manage your upcoming and past appointments{% endblock %}
+
+{% block content %}
+{% if not session.user_id %}
+<div class="card text-center py-5">
+    <i class="fas fa-lock fa-4x text-primary mb-4"></i>
+    <h3>Login Required</h3>
+    <p>Please login to view your appointments.</p>
+    <div class="mt-4">
+        <a href="{{ url_for('login') }}" class="btn btn-primary">Login</a>
+        <a href="{{ url_for('register') }}" class="btn btn-outline ms-2">Register</a>
+    </div>
+</div>
+{% else %}
+<!-- Today's Appointments -->
+{% if today %}
+<div class="mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="fas fa-clock me-2 text-primary"></i>Today's Appointments</h2>
+    </div>
+    <div class="appointments-list">
+        {% for apt in today %}
+        <div class="appointment-card today">
+            <div class="appointment-info">
+                <div class="appointment-time">
+                    <div class="time">{{ apt.appointment_time|format_time }}</div>
+                    <div class="date">Today</div>
+                </div>
+                <div class="appointment-doctor">
+                    <div class="doctor-avatar">
+                        <i class="fas fa-user-md"></i>
+                    </div>
+                    <div class="doctor-details">
+                        <h4>{{ apt.doctor_name }}</h4>
+                        <p>{{ apt.specialization }} • {{ apt.hospital }}</p>
+                        {% if apt.predicted_disease %}
+                        <p class="small text-muted mt-1"><i class="fas fa-stethoscope me-1"></i>{{ apt.predicted_disease }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <span class="appointment-status status-confirmed">Confirmed</span>
+                <button class="btn btn-sm btn-outline-primary" onclick="viewAppointmentDetails('{{ apt.id }}')">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" onclick="cancelAppointment('{{ apt.id }}')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Upcoming Appointments -->
+{% if upcoming %}
+<div class="mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="fas fa-calendar-alt me-2 text-primary"></i>Upcoming Appointments</h2>
+    </div>
+    <div class="appointments-list">
+        {% for apt in upcoming %}
+        <div class="appointment-card upcoming">
+            <div class="appointment-info">
+                <div class="appointment-time">
+                    <div class="time">{{ apt.appointment_time|format_time }}</div>
+                    <div class="date">{{ apt.appointment_date.strftime('%b %d, %Y') }}</div>
+                </div>
+                <div class="appointment-doctor">
+                    <div class="doctor-avatar">
+                        <i class="fas fa-user-md"></i>
+                    </div>
+                    <div class="doctor-details">
+                        <h4>{{ apt.doctor_name }}</h4>
+                        <p>{{ apt.specialization }} • {{ apt.hospital }}</p>
+                        {% if apt.predicted_disease %}
+                        <p class="small text-muted mt-1"><i class="fas fa-stethoscope me-1"></i>{{ apt.predicted_disease }} ({{ apt.confidence_score }}%)</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <span class="appointment-status status-pending">Upcoming</span>
+                <button class="btn btn-sm btn-outline-primary" onclick="viewAppointmentDetails('{{ apt.id }}');">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-primary" onclick="rescheduleAppointment('{{ apt.id }}');">
+                    <i class="fas fa-calendar-alt"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" onclick="cancelAppointment('{{ apt.id }}')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Past Appointments -->
+{% if past %}
+<div class="mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="fas fa-history me-2 text-primary"></i>Past Appointments</h2>
+    </div>
+    <div class="appointments-list">
+        {% for apt in past %}
+        <div class="appointment-card past" style="opacity: 0.8;">
+            <div class="appointment-info">
+                <div class="appointment-time">
+                    <div class="time">{{ apt.appointment_time|format_time }}</div>
+                    <div class="date">{{ apt.appointment_date.strftime('%b %d, %Y') }}</div>
+                </div>
+                <div class="appointment-doctor">
+                    <div class="doctor-avatar">
+                        <i class="fas fa-user-md"></i>
+                    </div>
+                    <div class="doctor-details">
+                        <h4>{{ apt.doctor_name }}</h4>
+                        <p>{{ apt.specialization }} • {{ apt.hospital }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <span class="appointment-status status-completed">Completed</span>
+                <button class="btn btn-sm btn-outline-primary" onclick="viewAppointmentDetails('{{ apt.id }}')">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Cancelled Appointments -->
+{% if cancelled %}
+<div class="mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="fas fa-ban me-2 text-danger"></i>Cancelled Appointments</h2>
+    </div>
+    <div class="appointments-list">
+        {% for apt in cancelled %}
+        <div class="appointment-card cancelled">
+            <div class="appointment-info">
+                <div class="appointment-time">
+                    <div class="time">{{ apt.appointment_time|format_time }}</div>
+                    <div class="date">{{ apt.appointment_date.strftime('%b %d, %Y') }}</div>
+                </div>
+                <div class="appointment-doctor">
+                    <div class="doctor-avatar">
+                        <i class="fas fa-user-md"></i>
+                    </div>
+                    <div class="doctor-details">
+                        <h4>{{ apt.doctor_name }}</h4>
+                        <p>{{ apt.specialization }} • {{ apt.hospital }}</p>
+                        {% if apt.cancellation_reason %}
+                        <p class="small text-muted mt-1"><i class="fas fa-comment me-1"></i>{{ apt.cancellation_reason }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <span class="appointment-status status-cancelled">Cancelled</span>
+                <button class="btn btn-sm btn-outline-primary" onclick="viewAppointmentDetails('{{ apt.id }}')">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if not today and not upcoming and not past %}
+<div class="card text-center py-5">
+    <i class="fas fa-calendar-alt fa-3x text-muted mb-3"></i>
+    <h4>No Appointments Found</h4>
+    <p class="text-muted">You don't have any appointments yet.</p>
+    <a href="{{ url_for('find_doctors') }}" class="btn btn-primary mt-2">Find Doctors</a>
+</div>
+{% endif %}
+
+<!-- Appointment Details Modal -->
+<div class="modal fade" id="appointmentDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-info-circle me-2"></i>Appointment Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="appointmentDetailsBody">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary"></div>
+                    <p class="mt-2">Loading details...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-times-circle me-2"></i>Cancel Appointment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to cancel this appointment?</p>
+                <textarea id="cancelReason" class="form-control" rows="2" placeholder="Reason (optional)"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-danger" id="confirmCancel">Cancel Appointment</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reschedule Modal -->
+<div class="modal fade" id="rescheduleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-calendar-alt me-2"></i>Reschedule Appointment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">New Date</label>
+                    <input type="date" id="newDate" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">New Time</label>
+                    <input type="time" id="newTime" class="form-control">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="confirmReschedule">Reschedule</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentAppointmentId = null;
+
+function viewAppointmentDetails(id) {
+    currentAppointmentId = id;
+    const modal = new bootstrap.Modal(document.getElementById('appointmentDetailsModal'));
+    const body = document.getElementById('appointmentDetailsBody');
+    
+    body.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div><p class="mt-2">Loading details...</p></div>';
+    modal.show();
+    
+    // Fetch appointment details
+    fetch('/get-appointment-details/' + id)
+        .then(res => res.json())
+        .then(data => {
+            body.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-user-md text-primary me-2"></i>Doctor Information</h6>
+                        <hr>
+                        <p><strong>Name:</strong> ${data.doctor_name}</p>
+                        <p><strong>Specialization:</strong> ${data.specialization}</p>
+                        <p><strong>Hospital:</strong> ${data.hospital}</p>
+                        <p><strong>Timings:</strong> ${data.timings}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-calendar text-primary me-2"></i>Appointment Information</h6>
+                        <hr>
+                        <p><strong>Date:</strong> ${data.appointment_date}</p>
+                        <p><strong>Time:</strong> ${data.appointment_time}</p>
+                        <p><strong>Status:</strong> <span class="badge bg-${data.status === 'scheduled' ? 'success' : (data.status === 'cancelled' ? 'danger' : 'secondary')}">${data.status}</span></p>
+                        ${data.predicted_disease ? `<p><strong>Predicted Disease:</strong> ${data.predicted_disease}</p>` : ''}
+                        ${data.confidence_score ? `<p><strong>Confidence:</strong> ${data.confidence_score}%</p>` : ''}
+                    </div>
+                </div>
+                <hr>
+                <h6><i class="fas fa-notes-medical text-primary me-2"></i>Symptoms</h6>
+                <div class="border rounded p-3 bg-light">
+                    ${data.symptoms || 'No symptoms described'}
+                </div>
+                ${data.notes ? `
+                <hr>
+                <h6><i class="fas fa-stethoscope text-primary me-2"></i>Doctor's Notes</h6>
+                <div class="border rounded p-3 bg-light">
+                    ${data.notes}
+                </div>
+                ` : ''}
+            `;
+        })
+        .catch(() => {
+            body.innerHTML = '<div class="alert alert-danger">Failed to load appointment details</div>';
+        });
+}
+
+function cancelAppointment(id) {
+    currentAppointmentId = id;
+    new bootstrap.Modal(document.getElementById('cancelModal')).show();
+}
+
+function rescheduleAppointment(id) {
+    currentAppointmentId = id;
+    new bootstrap.Modal(document.getElementById('rescheduleModal')).show();
+}
+
+document.getElementById('confirmCancel').addEventListener('click', function() {
+    const reason = document.getElementById('cancelReason').value;
+    fetch('/cancel-appointment/' + currentAppointmentId, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'reason=' + encodeURIComponent(reason)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    });
+});
+
+document.getElementById('confirmReschedule').addEventListener('click', function() {
+    const newDate = document.getElementById('newDate').value;
+    const newTime = document.getElementById('newTime').value;
+    if (!newDate || !newTime) {
+        alert('Please select both date and time');
+        return;
+    }
+    fetch('/reschedule-appointment/' + currentAppointmentId, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'new_date=' + encodeURIComponent(newDate) + '&new_time=' + encodeURIComponent(newTime)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    });
+});
+
+// Set min date for date picker
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('newDate').min = today;
+</script>
+{% endif %}
+{% endblock %}

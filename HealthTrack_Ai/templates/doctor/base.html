@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Portal - {% block title %}HealthTrack AI{% endblock %}</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-user-md"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h2>Doctor Portal</h2>
+                        <p>HealthTrack AI</p>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">Main</div>
+                <a href="{{ url_for('doctor_dashboard') }}" class="nav-link {% if request.endpoint == 'doctor_dashboard' %}active{% endif %}">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{{ url_for('doctor_appointments') }}" class="nav-link {% if request.endpoint == 'doctor_appointments' %}active{% endif %}">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Appointments</span>
+                </a>
+                <a href="{{ url_for('doctor_profile_page') }}" class="nav-link {% if request.endpoint == 'doctor_profile_page' %}active{% endif %}">
+                    <i class="fas fa-user-circle"></i>
+                    <span>My Profile</span>
+                </a>
+                <a href="{{ url_for('doctor_availability') }}" class="nav-link {% if request.endpoint == 'doctor_availability' %}active{% endif %}">
+                    <i class="fas fa-clock"></i>
+                    <span>Availability</span>
+                </a>
+                
+                <div class="nav-section">Account</div>
+                <a href="{{ url_for('doctor_logout') }}" class="nav-link">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="page-title">
+                    <h1>{% block page_title %}Dashboard{% endblock %}</h1>
+                    <p>{% block page_subtitle %}Welcome back, {{ session.doctor_name }}{% endblock %}</p>
+                </div>
+                <div class="header-actions">
+                    <button class="mobile-menu-btn" id="mobileMenuBtn">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="user-menu">
+                        <div class="user-info">
+                            <div class="user-name">{{ session.doctor_name }}</div>
+                            <div class="user-role">{{ session.doctor_specialization }}</div>
+                        </div>
+                        <div class="user-avatar">
+                            <i class="fas fa-user-md"></i>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show mx-3" role="alert">
+                            <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-circle{% else %}info-circle{% endif %} me-2"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <div class="content-area">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('mobile-open');
+        });
+        
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const menuBtn = document.getElementById('mobileMenuBtn');
+            if (window.innerWidth <= 768) {
+                if (!sidebar.contains(event.target) && !menuBtn.contains(event.target)) {
+                    sidebar.classList.remove('mobile-open');
+                }
+            }
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

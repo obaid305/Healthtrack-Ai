@@ -1,0 +1,50 @@
+{% extends "doctor/base.html" %}
+
+{% block title %}Availability{% endblock %}
+{% block page_title %}Availability Settings{% endblock %}
+{% block page_subtitle %}Manage your consultation availability{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-clock me-2"></i>Availability Settings</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('doctor_availability') }}" id="availabilityForm">
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="is_available" name="is_available" 
+                                   {% if doctor.is_available %}checked{% endif %}>
+                            <label class="form-check-label" for="is_available">
+                                <strong>Accepting New Appointments</strong>
+                            </label>
+                        </div>
+                        <small class="text-muted d-block mt-2">
+                            When turned on, patients will be able to book appointments with you.
+                        </small>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Current Consultation Hours:</strong> {{ doctor.timings or 'Not set' }}<br>
+                        <small>To update your consultation hours, please edit your profile.</small>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-save me-2"></i>Save Availability Settings
+                    </button>
+                </form>
+                
+                <hr>
+                <div class="text-center">
+                    <a href="{{ url_for('doctor_profile_page') }}" class="btn btn-outline">
+                        <i class="fas fa-edit me-2"></i>Edit Profile (Update Hours)
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

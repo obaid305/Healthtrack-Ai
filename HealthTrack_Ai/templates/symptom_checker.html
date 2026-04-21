@@ -1,0 +1,698 @@
+{% extends "base.html" %}
+
+{% block title %}Symptom Checker{% endblock %}
+{% block page_title %}Symptom Checker{% endblock %}
+{% block page_subtitle %}AI-powered symptom analysis and diagnosis{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Symptom Checker Styles */
+.symptom-search {
+    position: relative;
+    margin-bottom: var(--space-lg);
+}
+
+.symptom-search input {
+    width: 100%;
+    padding: var(--space-md) var(--space-lg);
+    padding-left: 2.5rem;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-full);
+    font-size: 0.9rem;
+}
+
+.symptom-search i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray-400);
+}
+
+.symptom-category {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--gray-200);
+    margin-bottom: var(--space-md);
+    overflow: hidden;
+}
+
+.category-header {
+    background: var(--gray-50);
+    padding: var(--space-md) var(--space-lg);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    transition: background var(--transition-fast);
+}
+
+.category-header:hover {
+    background: var(--gray-100);
+}
+
+.category-header i:first-child {
+    color: var(--primary);
+    margin-right: var(--space-sm);
+    width: 24px;
+    font-size: 1rem;
+}
+
+.category-header .badge-count {
+    background: var(--gray-300);
+    color: var(--gray-700);
+    border-radius: var(--radius-full);
+    padding: 0.2rem 0.6rem;
+    font-size: 0.7rem;
+    margin-left: var(--space-sm);
+}
+
+.category-header .badge-count.has-selected {
+    background: var(--primary);
+    color: white;
+}
+
+.category-content {
+    display: none;
+    padding: var(--space-lg);
+    border-top: 1px solid var(--gray-200);
+}
+
+.category-content.open {
+    display: block;
+}
+
+.symptom-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+}
+
+.symptom-tag {
+    background: var(--gray-100);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-full);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border: 1px solid var(--gray-200);
+}
+
+.symptom-tag:hover {
+    background: var(--primary-soft);
+    border-color: var(--primary-light);
+}
+
+.symptom-tag.selected {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* Fixed Sticky Boxes - Prevent Collapse */
+.symptom-checker-right {
+    position: sticky;
+    top: 90px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.selected-panel {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--gray-200);
+    padding: var(--space-lg);
+    width: 100%;
+}
+
+/* Consistent Selected Symptoms Tags - FIXED */
+.selected-symptoms {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    min-height: 120px;
+    max-height: 280px;
+    overflow-y: auto;
+    margin-bottom: var(--space-lg);
+    padding: 4px;
+}
+
+.selected-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #1B7F9E !important;
+    color: white !important;
+    padding: 6px 12px 6px 16px !important;
+    border-radius: 30px !important;
+    font-size: 0.85rem !important;
+    font-weight: 500 !important;
+    border: none !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+}
+
+.selected-tag:hover {
+    background: #0A5C7E !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+.selected-tag .remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    background: rgba(255,255,255,0.25);
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    transition: all 0.2s ease;
+}
+
+.selected-tag .remove:hover {
+    background: rgba(255,255,255,0.4);
+    transform: scale(1.1);
+}
+
+.clear-all-btn {
+    background: var(--danger);
+    color: white;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.clear-all-btn:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+}
+
+.confidence-bar {
+    height: 8px;
+    background: var(--gray-200);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    margin: var(--space-md) 0;
+}
+
+.confidence-fill {
+    height: 100%;
+    border-radius: var(--radius-full);
+    transition: width var(--transition-slow);
+}
+
+.confidence-fill.high { background: var(--success); }
+.confidence-fill.medium { background: var(--warning); }
+.confidence-fill.low { background: var(--danger); }
+
+.result-doctor-card {
+    background: var(--gray-50);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    margin-bottom: 12px;
+    border: 1px solid var(--gray-200);
+    transition: all var(--transition-fast);
+}
+
+.result-doctor-card:hover {
+    background: var(--gray-100);
+    transform: translateX(4px);
+}
+
+/* Ensure proper spacing on mobile */
+@media (max-width: 992px) {
+    .symptom-checker-right {
+        position: relative;
+        top: 0;
+        margin-top: 24px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Content remains the same as before -->
+{% if not session.user_id %}
+<div class="card text-center py-5">
+    <i class="fas fa-lock fa-4x text-primary mb-4"></i>
+    <h3>Login Required</h3>
+    <p>Please login to use the AI-powered symptom checker.</p>
+    <div class="mt-4">
+        <a href="{{ url_for('login') }}" class="btn btn-primary">Login</a>
+        <a href="{{ url_for('register') }}" class="btn btn-outline ms-2">Register</a>
+    </div>
+</div>
+{% else %}
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-list-ul me-2"></i>Select Your Symptoms</h5>
+            </div>
+            <div class="card-body">
+                <div class="symptom-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchSymptoms" placeholder="Search symptoms...">
+                </div>
+                <div id="symptomCategories"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="symptom-checker-right">
+            <div class="selected-panel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5><i class="fas fa-list-check me-2 text-primary"></i>Selected Symptoms</h5>
+                    <button id="clearAllBtn" class="clear-all-btn" style="display: none;">
+                        <i class="fas fa-trash-alt me-1"></i>Clear All
+                    </button>
+                </div>
+                <div id="selectedSymptomsList" class="selected-symptoms">
+                    <p class="text-muted text-center w-100">No symptoms selected</p>
+                </div>
+                <button id="analyzeBtn" class="btn btn-primary w-100" disabled>
+                    <i class="fas fa-stethoscope me-2"></i>Analyze Symptoms
+                </button>
+                <div id="selectedCount" class="text-center mt-2 small text-muted"></div>
+            </div>
+            
+            <div class="selected-panel">
+                <h5><i class="fas fa-chart-line me-2 text-primary"></i>AI Diagnosis Result</h5>
+                <div id="resultContainer" class="text-center py-4">
+                    <i class="fas fa-brain fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Select symptoms and click "Analyze"</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Complete symptom data for all 11 categories (same as before)
+const symptomCategoriesData = {
+    'Infectious & Respiratory Diseases': {
+        icon: 'fa-lungs',
+        symptoms: [
+            'sore throat', 'cough', 'fever', 'shortness of breath', 'nasal congestion', 
+            'wheezing', 'chest tightness', 'hoarse voice', 'difficulty speaking', 'ear pain', 
+            'hearing loss', 'facial pain', 'runny nose', 'sputum production', 'barking cough', 
+            'difficulty breathing', 'ear discharge', 'snoring', 'loss of smell', 'eye redness', 
+            'watery discharge', 'eye itching', 'ear fullness', 'chills', 'fatigue', 
+            'body aches', 'headache', 'swollen lymph nodes', 'nasal discharge', 'facial pressure'
+        ]
+    },
+    'Mental & Behavioral Health': {
+        icon: 'fa-brain',
+        symptoms: [
+            'low mood', 'loss of interest', 'sleep disturbances', 'fatigue', 'anxiety', 
+            'restlessness', 'irritability', 'social withdrawal', 'delusions', 'hallucinations', 
+            'disorganized thinking', 'repetitive thoughts', 'compulsive behaviors', 'flashbacks', 
+            'nightmares', 'hypervigilance', 'mood swings', 'impulsivity', 'inattention', 
+            'hyperactivity', 'social difficulties', 'communication issues', 'aggression', 
+            'rule-breaking', 'panic attacks', 'fear', 'confusion', 'agitation', 
+            'altered consciousness', 'chronic low mood', 'substance cravings', 'tremors', 
+            'sweating', 'seizures'
+        ]
+    },
+    'Gastrointestinal Diseases': {
+        icon: 'fa-utensils',
+        symptoms: [
+            'nausea', 'vomiting', 'diarrhea', 'abdominal pain', 'bloating', 'constipation', 
+            'bloody stool', 'heartburn', 'regurgitation', 'difficulty swallowing', 'loss of appetite', 
+            'weight loss', 'indigestion', 'belching', 'flatulence', 'jaundice', 
+            'abdominal distension', 'cramping', 'urgency', 'oily stool', 'foul-smelling stool', 
+            'fever', 'rectal pain', 'rectal bleeding', 'straining during bowel movements'
+        ]
+    },
+    'Cardiovascular & Circulatory': {
+        icon: 'fa-heart',
+        symptoms: [
+            'chest pain', 'shortness of breath', 'palpitations', 'dizziness', 'fainting', 
+            'fatigue', 'leg swelling', 'leg pain', 'numbness', 'weakness', 'cold extremities', 
+            'irregular heartbeat', 'rapid heartbeat', 'high blood pressure', 'low blood pressure', 
+            'sweating', 'nausea with chest pain', 'arm pain', 'jaw pain', 'back pain', 
+            'blue discoloration of skin', 'coughing up blood'
+        ]
+    },
+    'Neurological & Musculoskeletal': {
+        icon: 'fa-brain',
+        symptoms: [
+            'headache', 'dizziness', 'confusion', 'numbness', 'weakness', 'tingling', 
+            'tremors', 'stiffness', 'slowness of movement', 'balance issues', 'vision problems', 
+            'double vision', 'drooping eyelid', 'facial weakness', 'back pain', 'neck pain', 
+            'leg pain', 'shooting pain', 'muscle pain', 'joint pain', 'muscle cramps', 
+            'muscle twitching', 'loss of coordination', 'memory problems', 'seizures', 
+            'fainting', 'sensitivity to touch', 'difficulty walking', 'stiffness in joints', 
+            'swelling in joints'
+        ]
+    },
+    'Genitourinary & Reproductive': {
+        icon: 'fa-venus-mars',
+        symptoms: [
+            'frequent urination', 'painful urination', 'blood in urine', 'urgency to urinate', 
+            'weak urine stream', 'vaginal discharge', 'vaginal itching', 'vaginal odor', 
+            'pelvic pain', 'testicular pain', 'scrotal swelling', 'erectile dysfunction', 
+            'low libido', 'heavy menstrual bleeding', 'painful periods', 'irregular periods', 
+            'absence of menstruation', 'vaginal bleeding between periods', 'vaginal dryness', 
+            'painful intercourse', 'groin bulge', 'groin pain', 'urinary incontinence', 
+            'difficulty emptying bladder', 'lower abdominal pain'
+        ]
+    },
+    'Dermatological & Skin': {
+        icon: 'fa-hand-holding-heart',
+        symptoms: [
+            'rash', 'itching', 'redness', 'dry skin', 'scaling', 'blisters', 'sores', 
+            'lumps', 'bumps', 'skin growths', 'thickening of skin', 'discoloration of skin', 
+            'hair loss', 'nail changes', 'skin peeling', 'skin cracking', 'swelling of skin', 
+            'warmth of skin', 'painful skin', 'crusting', 'oozing', 'bruising easily', 
+            'moles changing appearance', 'rough patches on skin'
+        ]
+    },
+    'Eye & Vision': {
+        icon: 'fa-eye',
+        symptoms: [
+            'blurred vision', 'eye pain', 'eye redness', 'eye itching', 'eye discharge', 
+            'dry eyes', 'watery eyes', 'floaters', 'flashes of light', 'vision loss', 
+            'double vision', 'crossed eyes', 'sensitivity to light', 'halos around lights', 
+            'drooping eyelid', 'eyelid swelling', 'gritty sensation', 'foreign body sensation', 
+            'difficulty seeing at night', 'loss of peripheral vision', 'eye strain', 
+            'headache with vision changes'
+        ]
+    },
+    'Hematological & Oncological': {
+        icon: 'fa-droplet',
+        symptoms: [
+            'fatigue', 'weakness', 'pale skin', 'easy bruising', 'bleeding', 'frequent infections', 
+            'fever', 'night sweats', 'unexplained weight loss', 'lumps or masses', 'bone pain', 
+            'persistent cough', 'changes in mole', 'unusual bleeding', 'swollen lymph nodes', 
+            'shortness of breath', 'dizziness', 'headache with neurological changes', 
+            'abdominal pain with mass', 'jaundice'
+        ]
+    },
+    'Metabolic & Endocrine': {
+        icon: 'fa-chart-line',
+        symptoms: [
+            'fatigue', 'weight gain', 'weight loss', 'increased thirst', 'frequent urination', 
+            'increased hunger', 'sweating', 'tremors', 'heat intolerance', 'cold intolerance', 
+            'palpitations', 'muscle weakness', 'muscle cramps', 'dizziness', 'confusion', 
+            'fainting', 'swelling in neck', 'hair thinning', 'dry skin', 'constipation', 
+            'diarrhea', 'mood changes', 'irregular heartbeat'
+        ]
+    },
+    'Miscellaneous & Other': {
+        icon: 'fa-ellipsis-h',
+        symptoms: [
+            'pain in various body parts', 'fever', 'chills', 'fatigue', 'malaise', 
+            'sleep disturbances', 'swelling of limbs or body', 'fluid retention', 'poor wound healing', 
+            'mouth sores', 'tooth pain', 'jaw pain', 'hearing problems', 'ringing in ears', 
+            'balance problems', 'allergies', 'drug reactions', 'trauma-related pain', 
+            'post-operative pain', 'pregnancy-related symptoms', 'breastfeeding issues', 
+            'sexual dysfunction', 'stress', 'anxiety', 'grief', 'adjustment difficulties', 
+            'social issues', 'nutritional deficiencies', 'dehydration', 'electrolyte imbalance', 
+            'poisoning symptoms', 'environmental injuries', 'heat-related symptoms', 
+            'age-related decline', 'frailty', 'failure to thrive'
+        ]
+    }
+};
+
+let selectedSymptoms = [];
+
+function formatSymptomName(symptom) {
+    return symptom.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+}
+
+function renderCategories() {
+    const container = document.getElementById('symptomCategories');
+    container.innerHTML = '';
+    
+    for (const [categoryName, categoryData] of Object.entries(symptomCategoriesData)) {
+        const categoryId = categoryName.toLowerCase().replace(/[^a-z]/g, '-');
+        const categoryHtml = `
+            <div class="symptom-category" data-category="${categoryId}">
+                <div class="category-header">
+                    <span>
+                        <i class="fas ${categoryData.icon}"></i>
+                        ${categoryName}
+                        <span class="badge-count" id="${categoryId}-count">0</span>
+                    </span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="category-content">
+                    <div class="symptom-grid" id="${categoryId}-grid"></div>
+                </div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', categoryHtml);
+        
+        const grid = document.getElementById(`${categoryId}-grid`);
+        categoryData.symptoms.forEach(symptom => {
+            const displayName = formatSymptomName(symptom);
+            const tag = document.createElement('div');
+            tag.className = 'symptom-tag';
+            tag.textContent = displayName;
+            tag.setAttribute('data-symptom', symptom);
+            tag.onclick = () => toggleSymptom(tag, symptom, displayName);
+            grid.appendChild(tag);
+        });
+    }
+    
+    document.querySelectorAll('.category-header').forEach(header => {
+        header.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const content = header.nextElementSibling;
+            content.classList.toggle('open');
+            const icon = header.querySelector('.fa-chevron-down, .fa-chevron-up');
+            if (content.classList.contains('open')) {
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            } else {
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+            }
+        });
+    });
+    
+    const firstContent = document.querySelector('.category-content');
+    if (firstContent) {
+        firstContent.classList.add('open');
+        const firstIcon = document.querySelector('.category-header .fa-chevron-down');
+        if (firstIcon) {
+            firstIcon.classList.remove('fa-chevron-down');
+            firstIcon.classList.add('fa-chevron-up');
+        }
+    }
+}
+
+function toggleSymptom(element, symptomKey, displayName) {
+    if (element.classList.contains('selected')) {
+        element.classList.remove('selected');
+        selectedSymptoms = selectedSymptoms.filter(s => s.key !== symptomKey);
+    } else {
+        element.classList.add('selected');
+        selectedSymptoms.push({ key: symptomKey, display: displayName });
+    }
+    updateSelectedDisplay();
+}
+
+function updateSelectedDisplay() {
+    const container = document.getElementById('selectedSymptomsList');
+    const clearBtn = document.getElementById('clearAllBtn');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const countSpan = document.getElementById('selectedCount');
+    
+    if (selectedSymptoms.length === 0) {
+        container.innerHTML = '<p class="text-muted text-center w-100 mb-0">No symptoms selected</p>';
+        clearBtn.style.display = 'none';
+        analyzeBtn.disabled = true;
+        countSpan.innerHTML = '';
+    } else {
+        container.innerHTML = selectedSymptoms.map(symptom => `
+            <div class="selected-tag">
+                <span>${symptom.display}</span>
+                <span class="remove" data-symptom="${symptom.key}">✕</span>
+            </div>
+        `).join('');
+        clearBtn.style.display = 'inline-block';
+        analyzeBtn.disabled = false;
+        countSpan.innerHTML = `${selectedSymptoms.length} symptom(s) selected`;
+    }
+    
+    updateCategoryBadges();
+    
+    document.querySelectorAll('.remove').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const symptomKey = btn.getAttribute('data-symptom');
+            const tag = document.querySelector(`.symptom-tag[data-symptom="${symptomKey}"]`);
+            if (tag) {
+                tag.classList.remove('selected');
+            }
+            selectedSymptoms = selectedSymptoms.filter(s => s.key !== symptomKey);
+            updateSelectedDisplay();
+        });
+    });
+}
+
+function updateCategoryBadges() {
+    for (const [categoryName, categoryData] of Object.entries(symptomCategoriesData)) {
+        const categoryId = categoryName.toLowerCase().replace(/[^a-z]/g, '-');
+        const count = selectedSymptoms.filter(s => categoryData.symptoms.includes(s.key)).length;
+        const badge = document.getElementById(`${categoryId}-count`);
+        if (badge) {
+            badge.textContent = count;
+            if (count > 0) {
+                badge.classList.add('has-selected');
+            } else {
+                badge.classList.remove('has-selected');
+            }
+        }
+    }
+}
+
+document.getElementById('clearAllBtn')?.addEventListener('click', function() {
+    document.querySelectorAll('.symptom-tag.selected').forEach(tag => {
+        tag.classList.remove('selected');
+    });
+    selectedSymptoms = [];
+    updateSelectedDisplay();
+});
+
+document.getElementById('searchSymptoms').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase().trim();
+    const allTags = document.querySelectorAll('.symptom-tag');
+    
+    if (searchTerm === '') {
+        allTags.forEach(tag => tag.style.display = 'inline-flex');
+        document.querySelectorAll('.category-content').forEach(content => {
+            content.classList.remove('open');
+        });
+        const firstContent = document.querySelector('.category-content');
+        if (firstContent) {
+            firstContent.classList.add('open');
+            const firstIcon = document.querySelector('.category-header .fa-chevron-down');
+            if (firstIcon) {
+                firstIcon.classList.remove('fa-chevron-down');
+                firstIcon.classList.add('fa-chevron-up');
+            }
+        }
+    } else {
+        allTags.forEach(tag => {
+            const text = tag.textContent.toLowerCase();
+            if (text.includes(searchTerm)) {
+                tag.style.display = 'inline-flex';
+                const parentContent = tag.closest('.category-content');
+                if (parentContent && !parentContent.classList.contains('open')) {
+                    parentContent.classList.add('open');
+                    const parentHeader = parentContent.previousElementSibling;
+                    const icon = parentHeader?.querySelector('.fa-chevron-down, .fa-chevron-up');
+                    if (icon) {
+                        icon.classList.remove('fa-chevron-down');
+                        icon.classList.add('fa-chevron-up');
+                    }
+                }
+            } else {
+                tag.style.display = 'none';
+            }
+        });
+    }
+});
+
+document.getElementById('analyzeBtn').addEventListener('click', function() {
+    if (selectedSymptoms.length === 0) return;
+    
+    const symptomNames = selectedSymptoms.map(s => s.key);
+    
+    this.disabled = true;
+    this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Analyzing...';
+    const resultContainer = document.getElementById('resultContainer');
+    resultContainer.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div><p class="mt-2">AI is analyzing your symptoms...</p></div>';
+    
+    fetch('/predict-disease', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ symptoms: symptomNames })
+    })
+    .then(res => res.json())
+    .then(data => {
+        let confidenceClass = data.confidence >= 70 ? 'high' : (data.confidence >= 40 ? 'medium' : 'low');
+        let confidenceColor = data.confidence >= 70 ? 'var(--success)' : (data.confidence >= 40 ? 'var(--warning)' : 'var(--danger)');
+        
+        let doctorsHtml = '';
+        if (data.doctors && data.doctors.length > 0) {
+            doctorsHtml = '<div class="mt-3"><strong><i class="fas fa-user-md me-1"></i>Recommended Doctors:</strong><div class="mt-2">';
+            data.doctors.slice(0, 3).forEach(doctor => {
+                doctorsHtml += `
+                    <div class="result-doctor-card">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>${doctor.name}</strong><br>
+                                <small class="text-muted">${doctor.hospital || 'Hospital not specified'}</small><br>
+                                <small class="text-muted">${doctor.specialization}</small>
+                            </div>
+                            <a href="/book-appointment/${doctor.id}?disease=${encodeURIComponent(data.disease)}&confidence=${data.confidence}&symptoms=${encodeURIComponent(symptomNames.join(', '))}" 
+                               class="btn btn-sm btn-primary">Book</a>
+                        </div>
+                    </div>
+                `;
+            });
+            doctorsHtml += '</div></div>';
+        } else {
+            doctorsHtml = `
+                <div class="mt-3">
+                    <a href="/find-doctors?specialization=${encodeURIComponent(data.specialist)}" class="btn btn-primary w-100">
+                        <i class="fas fa-search me-2"></i>Find ${data.specialist}s
+                    </a>
+                </div>
+            `;
+        }
+        
+        resultContainer.innerHTML = `
+            <div class="text-center">
+                <i class="fas fa-heartbeat fa-3x text-primary mb-2"></i>
+                <h4 class="text-primary">${data.disease}</h4>
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Confidence Score</span>
+                        <span class="fw-bold">${data.confidence}%</span>
+                    </div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill ${confidenceClass}" style="width: ${data.confidence}%; background: ${confidenceColor};"></div>
+                    </div>
+                </div>
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-user-md me-2"></i>
+                    <strong>Recommended Specialist:</strong> ${data.specialist}
+                </div>
+                ${doctorsHtml}
+            </div>
+        `;
+    })
+    .catch(error => {
+        resultContainer.innerHTML = `
+            <div class="alert alert-danger text-center">
+                <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                <h5>Analysis Failed</h5>
+                <p class="mb-0">Unable to analyze symptoms. Please try again later.</p>
+            </div>
+        `;
+    })
+    .finally(() => {
+        this.disabled = false;
+        this.innerHTML = '<i class="fas fa-stethoscope me-2"></i>Analyze Symptoms';
+    });
+});
+
+renderCategories();
+</script>
+{% endif %}
+{% endblock %}
